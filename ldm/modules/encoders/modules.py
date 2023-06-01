@@ -236,7 +236,7 @@ class FrozenOpenCLIPEmbedder(AbstractEncoder):
         return self(text)
 
 
-class FrozenOpenCLIPImageEmbedder(AbstractEncoder):
+class FrozenOpenCLIPImageAndTextEmbedder(AbstractEncoder):
     """
     Uses the OpenCLIP vision transformer encoder for images
     """
@@ -246,7 +246,7 @@ class FrozenOpenCLIPImageEmbedder(AbstractEncoder):
         super().__init__()
         model, _, _ = open_clip.create_model_and_transforms(arch, device=torch.device('cpu'),
                                                             pretrained=version, )
-        del model.transformer
+        # del model.transformer
         self.model = model
 
         self.device = device
@@ -291,8 +291,13 @@ class FrozenOpenCLIPImageEmbedder(AbstractEncoder):
         x = self.model.visual(img)
         return x
 
-    def encode(self, text):
-        return self(text)
+    def encode(self, img):
+        return self(img)
+    
+    def encode_txt(self, txt):
+        tokens = open_clip.tokenize(txt)
+        z = self.model.encode_text(tokens.to(self.device))
+        return z
 
 
 class FrozenCLIPT5Encoder(AbstractEncoder):
